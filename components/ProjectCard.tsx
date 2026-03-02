@@ -1,22 +1,29 @@
 import Link from 'next/link'
-import type { Project } from '@/types'
+import type { Project, SelectDropdownOption } from '@/types'
 
 interface ProjectCardProps {
   project: Project;
 }
 
+// Changed: Add explicit type guard to safely read select-dropdown metadata values
+const isSelectDropdownOption = (value: unknown): value is SelectDropdownOption => {
+  return typeof value === 'object' && value !== null && ('value' in value || 'key' in value)
+}
+
+// Changed: Normalize category label with proper type safety
+const getCategoryLabel = (category: unknown): string | undefined => {
+  if (typeof category === 'string') return category
+  if (isSelectDropdownOption(category)) {
+    const label = category.value ?? category.key
+    return label ? String(label) : undefined
+  }
+  return undefined
+}
+
 export default function ProjectCard({ project }: ProjectCardProps) {
   const imageUrl = project.metadata?.featured_image?.imgix_url
   // Changed: Normalize category value to avoid rendering objects
-  const categoryData = project.metadata?.category
-  const category =
-    typeof categoryData === 'string'
-      ? categoryData
-      : categoryData && typeof categoryData === 'object' && 'value' in categoryData
-        ? String(categoryData.value)
-        : categoryData && typeof categoryData === 'object' && 'key' in categoryData
-          ? String(categoryData.key)
-          : undefined
+  const category = getCategoryLabel(project.metadata?.category)
 
   return (
     <Link href={`/projects/${project.slug}`} className="group block">

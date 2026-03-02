@@ -3,9 +3,25 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getProjectBySlug, getProjects } from '@/lib/cosmic'
+import type { SelectDropdownOption } from '@/types'
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>
+}
+
+// Changed: Add explicit type guard to safely read select-dropdown metadata values
+const isSelectDropdownOption = (value: unknown): value is SelectDropdownOption => {
+  return typeof value === 'object' && value !== null && ('value' in value || 'key' in value)
+}
+
+// Changed: Normalize category label with proper type safety
+const getCategoryLabel = (category: unknown): string | undefined => {
+  if (typeof category === 'string') return category
+  if (isSelectDropdownOption(category)) {
+    const label = category.value ?? category.key
+    return label ? String(label) : undefined
+  }
+  return undefined
 }
 
 export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
@@ -39,15 +55,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
   const imageUrl = project.metadata?.featured_image?.imgix_url
   // Changed: Normalize category value to avoid rendering objects
-  const categoryData = project.metadata?.category
-  const category =
-    typeof categoryData === 'string'
-      ? categoryData
-      : categoryData && typeof categoryData === 'object' && 'value' in categoryData
-        ? String(categoryData.value)
-        : categoryData && typeof categoryData === 'object' && 'key' in categoryData
-          ? String(categoryData.key)
-          : undefined
+  const category = getCategoryLabel(project.metadata?.category)
   const projectUrl = project.metadata?.project_url
   const description = project.metadata?.description
 

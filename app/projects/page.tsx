@@ -2,6 +2,22 @@ import type { Metadata } from 'next'
 import SectionHeading from '@/components/SectionHeading'
 import ProjectCard from '@/components/ProjectCard'
 import { getProjects } from '@/lib/cosmic'
+import type { SelectDropdownOption } from '@/types'
+
+// Changed: Add explicit type guard to safely read select-dropdown metadata values
+const isSelectDropdownOption = (value: unknown): value is SelectDropdownOption => {
+  return typeof value === 'object' && value !== null && ('value' in value || 'key' in value)
+}
+
+// Changed: Normalize category labels with proper type safety
+const getCategoryLabel = (category: unknown): string | null => {
+  if (typeof category === 'string') return category
+  if (isSelectDropdownOption(category)) {
+    const label = category.value ?? category.key
+    return label ? String(label) : null
+  }
+  return null
+}
 
 export const metadata: Metadata = {
   title: 'Projects — My Agency',
@@ -15,20 +31,10 @@ export default async function ProjectsPage() {
   const categories = Array.from(
     new Set(
       projects
-        .map((project) => {
-          const category = project.metadata?.category
-          if (typeof category === 'string') return category
-          if (category && typeof category === 'object' && 'value' in category) {
-            return String(category.value)
-          }
-          if (category && typeof category === 'object' && 'key' in category) {
-            return String(category.key)
-          }
-          return null
-        })
-        .filter(Boolean)
+        .map((project) => getCategoryLabel(project.metadata?.category))
+        .filter((category): category is string => Boolean(category))
     )
-  ) as string[]
+  )
 
   return (
     <>
