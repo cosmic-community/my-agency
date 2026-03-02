@@ -14,12 +14,19 @@ export interface CosmicImage {
   imgix_url: string;
 }
 
+// Changed: Add explicit select-dropdown option shape for typed category metadata
+export interface SelectDropdownOption {
+  key: string;
+  value: string;
+}
+
 export interface Project extends CosmicObject {
   type: 'projects';
   metadata: {
     description?: string;
     featured_image?: CosmicImage;
-    category?: string;
+    // Changed: Allow select-dropdown object shape from Cosmic (key/value) or string
+    category?: string | SelectDropdownOption;
     project_url?: string;
   };
 }
