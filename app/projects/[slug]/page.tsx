@@ -18,14 +18,14 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
 
   return {
     title: `${project.title} — My Agency`,
-    description: project.metadata?.description || `View the ${project.title} project by My Agency.`,
+    description: project.metadata?.description || `View the ${project.title} project by My Agency.`
   }
 }
 
 export async function generateStaticParams() {
   const projects = await getProjects()
   return projects.map((project) => ({
-    slug: project.slug,
+    slug: project.slug
   }))
 }
 
@@ -38,7 +38,16 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   }
 
   const imageUrl = project.metadata?.featured_image?.imgix_url
-  const category = project.metadata?.category
+  // Changed: Normalize category value to avoid rendering objects
+  const categoryData = project.metadata?.category
+  const category =
+    typeof categoryData === 'string'
+      ? categoryData
+      : categoryData && typeof categoryData === 'object' && 'value' in categoryData
+        ? String(categoryData.value)
+        : categoryData && typeof categoryData === 'object' && 'key' in categoryData
+          ? String(categoryData.key)
+          : undefined
   const projectUrl = project.metadata?.project_url
   const description = project.metadata?.description
 

@@ -7,7 +7,16 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project }: ProjectCardProps) {
   const imageUrl = project.metadata?.featured_image?.imgix_url
-  const category = project.metadata?.category
+  // Changed: Normalize category value to avoid rendering objects
+  const categoryData = project.metadata?.category
+  const category =
+    typeof categoryData === 'string'
+      ? categoryData
+      : categoryData && typeof categoryData === 'object' && 'value' in categoryData
+        ? String(categoryData.value)
+        : categoryData && typeof categoryData === 'object' && 'key' in categoryData
+          ? String(categoryData.key)
+          : undefined
 
   return (
     <Link href={`/projects/${project.slug}`} className="group block">

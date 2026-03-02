@@ -5,14 +5,29 @@ import { getProjects } from '@/lib/cosmic'
 
 export const metadata: Metadata = {
   title: 'Projects — My Agency',
-  description: 'Browse our portfolio of creative projects spanning branding, web development, and digital design.',
+  description: 'Browse our portfolio of creative projects spanning branding, web development, and digital design.'
 }
 
 export default async function ProjectsPage() {
   const projects = await getProjects()
 
+  // Changed: Normalize category values to avoid rendering objects from select-dropdown metafields
   const categories = Array.from(
-    new Set(projects.map((p) => p.metadata?.category).filter(Boolean))
+    new Set(
+      projects
+        .map((project) => {
+          const category = project.metadata?.category
+          if (typeof category === 'string') return category
+          if (category && typeof category === 'object' && 'value' in category) {
+            return String(category.value)
+          }
+          if (category && typeof category === 'object' && 'key' in category) {
+            return String(category.key)
+          }
+          return null
+        })
+        .filter(Boolean)
+    )
   ) as string[]
 
   return (
